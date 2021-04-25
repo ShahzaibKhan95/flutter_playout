@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_playout/header.dart';
 import 'package:flutter_playout/player_state.dart';
 import 'package:flutter_playout/textTrack.dart';
 
@@ -33,6 +34,7 @@ class Video extends StatefulWidget {
   final String subtitle;
   final String preferredAudioLanguage;
   final List<TextTrack> textTracks;
+  final List<Header> headers;
   final String preferredTextLanguage;
   final bool isLiveStream;
   final double position;
@@ -53,7 +55,8 @@ class Video extends StatefulWidget {
       this.position = -1,
       this.onViewCreated,
       this.desiredState = PlayerState.PLAYING,
-      this.textTracks})
+      this.textTracks,
+      this.headers})
       : super(key: key);
 
   @override
@@ -97,6 +100,9 @@ class _VideoState extends State<Video> {
             "position": widget.position,
             "textTracks": TextTrack.toJsonFromList(
                 widget.textTracks ?? List<TextTrack>()),
+            "headers": Header.toJsonFromList(
+              widget.headers?? List<Header>()
+            ),
             "preferredTextLanguage": widget.preferredTextLanguage ?? "",
           },
           creationParamsCodec: const JSONMessageCodec(),

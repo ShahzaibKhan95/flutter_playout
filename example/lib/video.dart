@@ -6,6 +6,8 @@ import 'package:flutter_playout/multiaudio/MultiAudioSupport.dart';
 import 'package:flutter_playout/player_observer.dart';
 import 'package:flutter_playout/player_state.dart';
 import 'package:flutter_playout/video.dart';
+import 'package:flutter_playout/header.dart';
+
 import 'package:flutter_playout_example/hls/getManifestLanguages.dart';
 
 class VideoPlayout extends StatefulWidget {
@@ -21,21 +23,13 @@ class VideoPlayout extends StatefulWidget {
 
 class _VideoPlayoutState extends State<VideoPlayout>
     with PlayerObserver, MultiAudioSupport {
-  final String _url = null;
-  List<HLSManifestLanguage> _hlsLanguages = List<HLSManifestLanguage>();
+  final String _url = "http://45.148.26.173/hls/S2.m3u8";
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero, _getHLSManifestLanguages);
   }
 
-  Future<void> _getHLSManifestLanguages() async {
-    if (!Platform.isIOS && _url != null && _url.isNotEmpty) {
-      _hlsLanguages = await getManifestLanguages(_url);
-      setState(() {});
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,36 +45,20 @@ class _VideoPlayoutState extends State<VideoPlayout>
               title: "MTA International",
               subtitle: "Reaching The Corners Of The Earth",
               preferredAudioLanguage: "eng",
-              isLiveStream: false,
+              isLiveStream: true,
               position: 0,
               url: _url,
               onViewCreated: _onViewCreated,
               desiredState: widget.desiredState,
               preferredTextLanguage: "en",
               loop: false,
+              headers: [
+                Header("Origin", "http://nbaweb.site"),
+                Header("Referer", "http://nbaweb.site/")
+              ],
             ),
           ),
           /* multi language menu */
-          _hlsLanguages.length < 2 && !Platform.isIOS
-              ? Container()
-              : Container(
-                  child: Row(
-                    children: _hlsLanguages
-                        .map((e) => MaterialButton(
-                              child: Text(
-                                e.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .button
-                                    .copyWith(color: Colors.white),
-                              ),
-                              onPressed: () {
-                                setPreferredAudioLanguage(e.code);
-                              },
-                            ))
-                        .toList(),
-                  ),
-                ),
         ],
       ),
     );

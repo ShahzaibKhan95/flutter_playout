@@ -66,6 +66,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     
     /* player metadata */
     var url:String = ""
+    var headers =  [String: String]()
     var autoPlay:Bool = true
     var loop:Bool = false
     var title:String = ""
@@ -122,7 +123,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
         self.showControls = parsedData["showControls"] as! Bool
         self.position = parsedData["position"] as! Double
-
+        self.headers = parsedData["headers"]
         setupPlayer()
     }
 
@@ -157,6 +158,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
                 self.showControls = parsedData["showControls"] as! Bool
                 self.position = parsedData["position"] as! Double
+                self.headers = parsedData["headers"]
 
                 self.onMediaChanged()
 
@@ -218,8 +220,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             } catch _ { }
 
             /* Create the asset to play */
-            let asset = AVAsset(url: videoURL)
-
+            let asset = AVURLAsset(url: videoURL, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
             if (asset.isPlayable) {
                 /* Create a new AVPlayerItem with the asset and
                  an array of asset keys to be automatically loaded */

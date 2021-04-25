@@ -40,6 +40,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import org.json.JSONArray;
@@ -122,6 +123,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private JSONArray subtitles = null;
 
     private long mediaDuration = 0L;
+
+    private HashMap headersMap = new HashMap<String, String>();
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
      */
@@ -195,6 +198,14 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             try {
                 this.subtitles = args.getJSONArray("subtitles");
             } catch (Exception e) {/* ignore */}
+
+            try {
+                JSONArray jsonHeaders = args.getJSONArray("headers");
+                for(int i=0; i<jsonHeaders.length(); i++){
+                    JSONObject jsonHeader = (JSONObject) jsonHeaders.get(i);
+                    this.headersMap.put(jsonHeader.getString("key"), jsonHeader.getString("value"));
+                }
+            }catch (Exception e){}
 
             initPlayer();
 
@@ -498,10 +509,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     }
 
     private void updateMediaSource() {
-        /* Produces DataSource instances through which media data is loaded. */
-        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
-                Util.getUserAgent(context, "flutter_playout"));
 
+        DataSource.Factory dataSourceFactory;
         /* This is the MediaSource representing the media to be played. */
         MediaSource videoSource;
         /*
@@ -509,8 +518,14 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
          * https://tools.ietf.org/html/rfc8216
          */
         if(this.url.contains(".m3u8") || this.url.contains(".m3u")) {
+            dataSourceFactory = new DefaultHttpDataSourceFactory(Util.getUserAgent(context, "flutter_playout"), null);
+            ((DefaultHttpDataSourceFactory)dataSourceFactory).getDefaultRequestProperties().set(headersMap);
             videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
         } else {
+            /* Produces DataSource instances through which media data is loaded. */
+            dataSourceFactory = new DefaultDataSourceFactory(context,
+                    Util.getUserAgent(context, "flutter_playout"));
+
             videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
         }
 
